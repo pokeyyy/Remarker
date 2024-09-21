@@ -1,11 +1,10 @@
 import gradio as gr
 import plotly.graph_objects as go
 import numpy as np
+from config import num_points
 
 # Function to generate a random point cloud
-
 def generate_fig_nx7(pcd):
-    num_points = 10000
     downsample_step = max(1, len(pcd)//num_points)  
     pcd = pcd[::downsample_step, :] 
 
@@ -33,7 +32,6 @@ def generate_fig_nx7(pcd):
     return fig
 
 def generate_fig_nx4(pcd):
-    num_points = 10000
     downsample_step = max(1, len(pcd)//num_points)  
     pcd = pcd[::downsample_step, :] 
 
@@ -57,7 +55,6 @@ def generate_fig_nx4(pcd):
     return fig
 
 def generate_fig_nx6(pcd):
-    num_points = 10000
     downsample_step = max(1, len(pcd)//num_points)  
     pcd = pcd[::downsample_step, :] 
     colors = pcd[:, 3:]   
