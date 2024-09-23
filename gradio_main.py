@@ -32,6 +32,12 @@ def generate_fig_nx9(pcd):
         ),
         hovertext=hover_text,  # Add hover labels
     )])
+    fig.update_layout(scene=dict(
+        xaxis=dict(showbackground=False, showgrid=False, showline=False, zeroline=False, showticklabels=False, title=''),
+        yaxis=dict(showbackground=False, showgrid=False, showline=False, zeroline=False, showticklabels=False, title=''),
+        zaxis=dict(showbackground=False, showgrid=False, showline=False, zeroline=False, showticklabels=False, title=''),
+        aspectmode='data'  # Ensures the axes have the same scale
+    ))
 
     colors = copy.copy(ori_colors)
     colors[valid_indices] = random_color[labels_1[valid_indices]]
@@ -47,6 +53,12 @@ def generate_fig_nx9(pcd):
         ),
         hovertext=hover_text,  # Add hover labels
     )])
+    fig2.update_layout(scene=dict(
+        xaxis=dict(showbackground=False, showgrid=False, showline=False, zeroline=False, showticklabels=False, title=''),
+        yaxis=dict(showbackground=False, showgrid=False, showline=False, zeroline=False, showticklabels=False, title=''),
+        zaxis=dict(showbackground=False, showgrid=False, showline=False, zeroline=False, showticklabels=False, title=''),
+        aspectmode='data'  # Ensures the axes have the same scale
+    ))
 
     return fig,fig2
 
