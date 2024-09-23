@@ -16,8 +16,11 @@ def get_next_pcd():
     # label_0: n x 1
     # label_1: n x 1
     # mask: n x 1 , 1 for current part,0 for others
-    pcd = np.random.random((1000,9))
+    #TODO
+    pcd = np.hstack((np.random.normal(0,1,(1000,3)),np.random.uniform(0,255,(1000,3)),np.random.randint(0,3,(1000,3))))
     return pcd
 
 def get_prev_pcd():
+    #TODO 
+    pcd = np.hstack((np.random.normal(0,1,(1000,3)),np.random.uniform(0,255,(1000,3)),np.random.randint(0,3,(1000,3))))
     return pcd
