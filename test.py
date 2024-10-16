@@ -4,6 +4,7 @@ import numpy as np
 from config import num_points, random_color
 import copy
 import pickle
+import tempfile
 import tkinter as tk
 from tkinter import filedialog
 
@@ -201,26 +202,16 @@ def jump_page(page_input):
     return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]],pointer
 
 def label_output():
-    # 创建 tkinter 根窗口（隐藏）
-    root = tk.Tk()
-    root.withdraw()
-    path = filedialog.asksaveasfilename(defaultextension=".pkl",
-                                             filetypes=[("pickle Files", "*.pkl"),
-                                                        ("All Files", "*.*")])
-    root.quit()
-    with open(path, 'wb') as file:
-        pickle.dump(label_list, file, protocol=pickle.HIGHEST_PROTOCOL)
+    # 使用 tempfile 创建临时文件
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as tmp_file:
+        pickle.dump(label_list, tmp_file, protocol=pickle.HIGHEST_PROTOCOL)
+        return tmp_file.name
 
 def file_output():
-    # 创建 tkinter 根窗口（隐藏）
-    root = tk.Tk()
-    root.withdraw()
-    path = filedialog.asksaveasfilename(defaultextension=".pkl",
-                                             filetypes=[("pickle Files", "*.pkl"),
-                                                        ("All Files", "*.*")])
-    root.quit()
-    with open(path, 'wb') as file:
-        pickle.dump(clusters_revise, file, protocol=pickle.HIGHEST_PROTOCOL)
+    # 使用 tempfile 创建临时文件
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as tmp_file:
+        pickle.dump(clusters_revise, tmp_file, protocol=pickle.HIGHEST_PROTOCOL)
+        return tmp_file.name
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -248,8 +239,10 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             label_output_btn = gr.Button("Output Label File!")
+            label_file_output = gr.File(label="Download Label File")
         with gr.Column():
             file_output_btn = gr.Button("Output Point Cloud File!")
+            clusters_file_output = gr.File(label="Download Point Cloud File")
 
 
     file_input.change(fn=upload_and_plot, inputs=[file_input], outputs=[left_plot, right_plot, ori_label, pre_label])
@@ -258,9 +251,9 @@ with gr.Blocks() as demo:
     pre_btn.click(fn=pre_then_plot, inputs=[], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
     accept_ori_btn.click(fn=accept_original,inputs=[],outputs=[ori_label, pre_label])
     accept_predict_btn.click(fn=accept_new,inputs=[],outputs=[ori_label, pre_label])
-    label_output_btn.click(fn=label_output)
     jump_page_btn.click(fn=jump_page, inputs=[page_input], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
-    file_output_btn.click(fn=file_output)
+    label_output_btn.click(fn=label_output, inputs=[], outputs=[label_file_output])
+    file_output_btn.click(fn=file_output, inputs=[], outputs=[clusters_file_output])
     # refresh_button.click(fn=refresh_point_cloud, inputs=[], outputs=[left_plot, right_plot])
     # reset_button.click(fn=refresh_point_cloud, inputs=[], outputs=[left_plot, right_plot])
 
