@@ -25,3 +25,10 @@ def get_prev_pcd():
     #TODO
     pcd = np.hstack((np.random.normal(0,1,(1000,3)),np.random.uniform(0,255,(1000,3)),np.random.randint(0,3,(1000,3))))
     return pcd
+
+def generate_label(pcd):
+    mask = pcd[:, -1].astype(bool)
+    diff = pcd[mask]
+    label_ori = int(diff[0, -3])
+    label_pre = int(diff[0, -2])
+    return label_ori, label_pre

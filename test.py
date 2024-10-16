@@ -7,7 +7,7 @@ import pickle
 import tkinter as tk
 from tkinter import filedialog
 
-from iterator import get_next_pcd,accept_new,accept_original
+from iterator import generate_label
 
 #global variable
 pointer = 0
@@ -139,42 +139,62 @@ def upload_and_plot(file_obj):
     print(file_obj.name)
     with open(file_obj.name, 'rb') as file:
         clusters = pickle.load(file)
-    clusters_revise = clusters.copy()
+    clusters_revise = copy.deepcopy(clusters)
     for i in range(len(clusters)):
-        label = clusters[i][:,-3].reshape(-1,1)
+        label = clusters[i][:,-3].copy()
+        label = label.reshape(-1,1)
         label_list.append(label)
     pcd = clusters[pointer]
     print(pcd.shape)
     fig = generate_fig(pcd)
     #label
-    mask = pcd[:,-1].astype(bool)
-    diff = pcd[mask]
-    label_ori = int(diff[0,-3])
-    label_pre = int(diff[0,-2])
-    label_ori = reflection[label_ori]
-    label_pre = reflection[label_pre]
-    return fig[0],fig[1],label_ori,label_pre
+    labels = generate_label(pcd)
+    return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]]
 
 def next_then_plot():
     global pointer
     if pointer < len(clusters) - 1 :
         pointer += 1
     print(pointer)
-    pcd = clusters[pointer]
-    return generate_fig(pcd)
+    fig = generate_fig(clusters[pointer])
+    labels = generate_label(clusters_revise[pointer])
+    return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]],pointer
 
 def pre_then_plot():
     global pointer
     if pointer > 0 :
         pointer -= 1
-    pcd = clusters[pointer]
-    return generate_fig(pcd)
+    fig = generate_fig(clusters[pointer])
+    labels = generate_label(clusters_revise[pointer])
+    return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]],pointer
 
 def accept_new():
-    global label_list
-    label_new = clusters[pointer][:,-2]
+    global label_list,clusters_revise
+    label_new = clusters[pointer][:,-2].copy()
+    clusters_revise[pointer][:, -3] = label_new.copy()
+    clusters_revise[pointer][:, -2] = label_new.copy()
     label_new.reshape(-1,1)
     label_list[pointer] = label_new
+
+def accept_original():
+    global label_list,clusters_revise
+    label_new = clusters[pointer][:, -3].copy()
+    clusters_revise[pointer][:, -3] = label_new.copy()
+    clusters_revise[pointer][:, -2] = label_new.copy()
+    label_new.reshape(-1, 1)
+    label_list[pointer] = label_new
+
+def jump_page(page_input):
+    global pointer
+    if(page_input < 0):
+        pointer = 0
+    elif(page_input >= len(clusters)):
+        pointer = len(clusters) - 1
+    else:
+        pointer = page_input
+    fig = generate_fig(clusters[pointer])
+    labels = generate_label(clusters_revise[pointer])
+    return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]]
 
 def file_output():
     # 创建 tkinter 根窗口（隐藏）
@@ -201,25 +221,31 @@ with gr.Blocks() as demo:
             left_plot = gr.Plot(label="Left Plot")
         with gr.Column():
             right_plot = gr.Plot(label="Right Plot")
-    with gr.Row():
-        with gr.Column():
+    with gr.Row(equal_height=True):
+        with gr.Column(scale=1):
             accept_ori_btn = gr.Button("Accept Original")
             pre_btn = gr.Button("Prev")
-        with gr.Column():
+        with gr.Column(scale=1):
+            page_input = gr.Number(value=0, label="Enter page number:")
+            jump_page_btn = gr.Button("Go to Page")
+        with gr.Column(scale=1):
             accept_predict_btn = gr.Button("Accept Predict")
             next_btn = gr.Button("Next")
     with gr.Row():
-        file_output_btn = gr.Button("Output File!")
+        with gr.Column():
+            label_output_btn = gr.Button("Output Label File!")
+        with gr.Column():
+            file_output_btn = gr.Button("Output Point Cloud File!")
 
 
     file_input.change(fn=upload_and_plot, inputs=[file_input], outputs=[left_plot, right_plot, ori_label, pre_label])
 
-    next_btn.click(fn=next_then_plot, inputs=[], outputs=[left_plot, right_plot])
-    pre_btn.click(fn=pre_then_plot, inputs=[], outputs=[left_plot, right_plot])
+    next_btn.click(fn=next_then_plot, inputs=[], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
+    pre_btn.click(fn=pre_then_plot, inputs=[], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
     accept_ori_btn.click(fn=accept_original)
     accept_predict_btn.click(fn=accept_new)
-    file_output_btn.click(fn=file_output)
-
+    label_output_btn.click(fn=file_output)
+    jump_page_btn.click(fn=jump_page, inputs=[page_input], outputs=[left_plot, right_plot, ori_label, pre_label])
     # refresh_button.click(fn=refresh_point_cloud, inputs=[], outputs=[left_plot, right_plot])
     # reset_button.click(fn=refresh_point_cloud, inputs=[], outputs=[left_plot, right_plot])
 
