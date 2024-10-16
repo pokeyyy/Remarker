@@ -175,6 +175,8 @@ def accept_new():
     clusters_revise[pointer][:, -2] = label_new.copy()
     label_new.reshape(-1,1)
     label_list[pointer] = label_new
+    labels = generate_label(clusters_revise[pointer])
+    return reflection[labels[0]],reflection[labels[1]]
 
 def accept_original():
     global label_list,clusters_revise
@@ -183,6 +185,8 @@ def accept_original():
     clusters_revise[pointer][:, -2] = label_new.copy()
     label_new.reshape(-1, 1)
     label_list[pointer] = label_new
+    labels = generate_label(clusters_revise[pointer])
+    return reflection[labels[0]], reflection[labels[1]]
 
 def jump_page(page_input):
     global pointer
@@ -194,9 +198,9 @@ def jump_page(page_input):
         pointer = page_input
     fig = generate_fig(clusters[pointer])
     labels = generate_label(clusters_revise[pointer])
-    return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]]
+    return fig[0],fig[1],reflection[labels[0]],reflection[labels[1]],pointer
 
-def file_output():
+def label_output():
     # 创建 tkinter 根窗口（隐藏）
     root = tk.Tk()
     root.withdraw()
@@ -207,6 +211,16 @@ def file_output():
     with open(path, 'wb') as file:
         pickle.dump(label_list, file, protocol=pickle.HIGHEST_PROTOCOL)
 
+def file_output():
+    # 创建 tkinter 根窗口（隐藏）
+    root = tk.Tk()
+    root.withdraw()
+    path = filedialog.asksaveasfilename(defaultextension=".pkl",
+                                             filetypes=[("pickle Files", "*.pkl"),
+                                                        ("All Files", "*.*")])
+    root.quit()
+    with open(path, 'wb') as file:
+        pickle.dump(clusters_revise, file, protocol=pickle.HIGHEST_PROTOCOL)
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -242,10 +256,11 @@ with gr.Blocks() as demo:
 
     next_btn.click(fn=next_then_plot, inputs=[], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
     pre_btn.click(fn=pre_then_plot, inputs=[], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
-    accept_ori_btn.click(fn=accept_original)
-    accept_predict_btn.click(fn=accept_new)
-    label_output_btn.click(fn=file_output)
-    jump_page_btn.click(fn=jump_page, inputs=[page_input], outputs=[left_plot, right_plot, ori_label, pre_label])
+    accept_ori_btn.click(fn=accept_original,inputs=[],outputs=[ori_label, pre_label])
+    accept_predict_btn.click(fn=accept_new,inputs=[],outputs=[ori_label, pre_label])
+    label_output_btn.click(fn=label_output)
+    jump_page_btn.click(fn=jump_page, inputs=[page_input], outputs=[left_plot, right_plot, ori_label, pre_label, page_input])
+    file_output_btn.click(fn=file_output)
     # refresh_button.click(fn=refresh_point_cloud, inputs=[], outputs=[left_plot, right_plot])
     # reset_button.click(fn=refresh_point_cloud, inputs=[], outputs=[left_plot, right_plot])
 
